@@ -4,7 +4,10 @@ CC := gcc
 CFLAGS := -Wall -Wextra -Werror -ggdb -std=c2x
 CPPFLAGS := -Isrc/brainfuck
 
-SOURCES := main.c brainfuck/parser.c brainfuck/compiler.c brainfuck/machine_code.c
+TARGETS := linux_x86-64
+
+SOURCES := main.c brainfuck/parser.c brainfuck/compiler.c brainfuck/machine_code.c brainfuck/arch/arch.c
+SOURCES += $(TARGETS:%=brainfuck/arch/%.c)
 SOURCES := $(SOURCES:%=src/%)
 
 $(NAME): $(SOURCES)

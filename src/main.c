@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
     int ncommands = 0;
     Command* commands = bf_parse(input, input_size, &ncommands, buffer);
 
-    MachineCode machine_code = bf_compile(commands, ncommands);
+    MachineCode machine_code = bf_compile(LINUX_X86_64, commands, ncommands);
     fwrite(machine_code.code, 1, machine_code.length, foutput);
     fclose(foutput);
 
