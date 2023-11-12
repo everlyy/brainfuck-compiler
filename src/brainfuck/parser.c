@@ -9,9 +9,9 @@
 
 static bool is_brainfuck_command(char c) {
     switch(c) {
-        #define ENUMERATE_COMMANDS(a, b, c) case b: return true;
-        COMMANDS(ENUMERATE_COMMANDS)
-        #undef ENUMERATE_COMMANDS
+        #define ENUM_COMMANDS(a, b, c) case b: return true;
+            COMMANDS
+        #undef ENUM_COMMANDS
     default:
         return false;
     }
@@ -19,9 +19,9 @@ static bool is_brainfuck_command(char c) {
 
 static CommandType char_to_type(char c) {
     switch(c) {
-        #define ENUMERATE_COMMANDS(a, b, c) case b: return a;
-        COMMANDS(ENUMERATE_COMMANDS)
-        #undef ENUMERATE_COMMANDS
+        #define ENUM_COMMANDS(a, b, c) case b: return a;
+            COMMANDS
+        #undef ENUM_COMMANDS
     default:
         ASSERT(!"Unreachable");
     }

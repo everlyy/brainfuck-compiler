@@ -214,9 +214,9 @@ MachineCode bf_compile(Command* commands, int ncommands) {
         args.current_offset += command_machine_code_size(args.current->type);
 
         switch(commands[i].type) {
-            #define ENUMERATE_COMMANDS(a, b, c) case a: compile_##c(args); break;
-            COMMANDS(ENUMERATE_COMMANDS)
-            #undef ENUMERATE_COMMANDS
+            #define ENUM_COMMANDS(a, b, c) case a: compile_##c(args); break;
+                COMMANDS
+            #undef ENUM_COMMANDS
         default:
             ASSERT(!"Unreachable");
         }

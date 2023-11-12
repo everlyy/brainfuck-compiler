@@ -5,22 +5,22 @@
 #include <stdint.h>
 #include "machine_code.h"
 
-#define COMMANDS(x) \
-    x(INC_DP,        '>', increment_data_pointer)     \
-    x(DEC_DP,        '<', decrement_data_pointer)     \
-    x(INC_AT_DP,     '+', increment_at_data_pointer)  \
-    x(DEC_AT_DP,     '-', decrement_at_data_pointer)  \
-    x(OUT_AT_DP,     '.', output_at_data_pointer)     \
-    x(IN_AT_DP,      ',', input_at_data_pointer)      \
-    x(JUMP_ZERO,     '[', jump_data_pointer_zero)     \
-    x(JUMP_NOT_ZERO, ']', jump_data_pointer_not_zero) \
-    x(SETUP,          0,  setup)                      \
-    x(EXIT,           1,  exit)                       \
+#define COMMANDS \
+    ENUM_COMMANDS(INC_DP,        '>', increment_data_pointer)     \
+    ENUM_COMMANDS(DEC_DP,        '<', decrement_data_pointer)     \
+    ENUM_COMMANDS(INC_AT_DP,     '+', increment_at_data_pointer)  \
+    ENUM_COMMANDS(DEC_AT_DP,     '-', decrement_at_data_pointer)  \
+    ENUM_COMMANDS(OUT_AT_DP,     '.', output_at_data_pointer)     \
+    ENUM_COMMANDS(IN_AT_DP,      ',', input_at_data_pointer)      \
+    ENUM_COMMANDS(JUMP_ZERO,     '[', jump_data_pointer_zero)     \
+    ENUM_COMMANDS(JUMP_NOT_ZERO, ']', jump_data_pointer_not_zero) \
+    ENUM_COMMANDS(SETUP,          0,  setup)                      \
+    ENUM_COMMANDS(EXIT,           1,  exit)                       \
 
 typedef enum {
-    #define ENUMERATE_COMMANDS(a, b, c) a = b,
-    COMMANDS(ENUMERATE_COMMANDS)
-    #undef ENUMERATE_COMMANDS
+    #define ENUM_COMMANDS(a, b, c) a = b,
+        COMMANDS
+    #undef ENUM_COMMANDS
 } CommandType;
 
 typedef struct {
