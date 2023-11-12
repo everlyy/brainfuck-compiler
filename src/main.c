@@ -1,0 +1,64 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include "brainfuck/brainfuck.h"
+#include "brainfuck/error.h"
+#include <sys/mman.h>
+
+FILE* open_file_or_exit(const char* filename, const char* mode) {
+    FILE* file = fopen(filename, mode);
+    ERROR_IF(!file, "Couldn't open file %s: %s\n", filename, strerror(errno));
+    return file;
+}
+
+static int get_filesize(FILE* file) {
+    fseek(file, 0, SEEK_END);
+    int filesize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    return filesize;
+}
+
+int main(int argc, char** argv) {
+    char* output_filename = "a.out";
+
+    if(argc < 2) {
+        fprintf(stderr, "ERROR: Wrong arguments\n");
+        printf("USAGE: %s <input file> [output file]\n", argv[0]);
+        return 1;
+    }
+
+    if(argc >= 3)
+        output_filename = argv[2];
+
+    FILE* finput = open_file_or_exit(argv[1], "r");
+    FILE* foutput = open_file_or_exit(output_filename, "wb");
+
+    int input_size = get_filesize(finput);
+
+    char* input = malloc(input_size);
+    ASSERT(input != NULL);
+    fread(input, 1, input_size, finput);
+    fclose(finput);
+
+    void* buffer = malloc(32768);
+    ASSERT(buffer != NULL);
+    memset(buffer, 0, 32768);
+
+    int ncommands = 0;
+    Command* commands = bf_parse(input, input_size, &ncommands, buffer);
+
+    MachineCode machine_code = bf_compile(commands, ncommands);
+    fwrite(machine_code.code, 1, machine_code.length, foutput);
+    fclose(foutput);
+
+    // This will just execute the generated machine code
+    void* program = mmap(NULL, machine_code.length, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
+    memcpy(program, machine_code.code, machine_code.length);
+    mprotect(program, machine_code.length, PROT_READ | PROT_EXEC);
+
+    ((void(*)(void))program)();
+
+    munmap(program, machine_code.length);
+    return 0;
+}
