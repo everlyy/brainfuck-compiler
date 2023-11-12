@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include "machine_code.h"
 
 #define COMMANDS(x) \
     x(INC_DP,        '>', increment_data_pointer)     \
@@ -29,12 +30,6 @@ typedef struct {
         void* cells_buffer;
     } data;
 } Command;
-
-typedef struct {
-    uint8_t* code;
-    size_t length;
-    size_t capacity;
-} MachineCode;
 
 Command* bf_parse(char* input, int input_size, int* ncommands, void* cells_buffer);
 MachineCode bf_compile(Command* commands, int ncommands);
