@@ -3,11 +3,11 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include "machine_code.h"
+#include "executable.h"
 #include "command.h"
 #include "arch/arch.h"
 
 Command* bf_parse(char* input, int input_size, int* ncommands, void* cells_buffer);
-MachineCode bf_compile(Arch arch, Command* commands, int ncommands);
+Executable bf_compile(Arch arch, Command* commands, int ncommands);
 
 #endif // _BRAINFUCK_COMPILER_H_

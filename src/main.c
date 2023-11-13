@@ -48,17 +48,17 @@ int main(int argc, char** argv) {
     int ncommands = 0;
     Command* commands = bf_parse(input, input_size, &ncommands, buffer);
 
-    MachineCode machine_code = bf_compile(LINUX_X86_64, commands, ncommands);
-    fwrite(machine_code.code, 1, machine_code.length, foutput);
+    Executable executable = bf_compile(LINUX_X86_64, commands, ncommands);
+    fwrite(executable.code, 1, executable.length, foutput);
     fclose(foutput);
 
     // This will just execute the generated machine code
-    void* program = mmap(NULL, machine_code.length, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-    memcpy(program, machine_code.code, machine_code.length);
-    mprotect(program, machine_code.length, PROT_READ | PROT_EXEC);
+    void* program = mmap(NULL, executable.length, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
+    memcpy(program, executable.code, executable.length);
+    mprotect(program, executable.length, PROT_READ | PROT_EXEC);
 
     ((void(*)(void))program)();
 
-    munmap(program, machine_code.length);
+    munmap(program, executable.length);
     return 0;
 }

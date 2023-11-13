@@ -11,7 +11,7 @@ static struct {
 } state;
 
 // Get these sizes dynamically, somehow?
-//   Maybe by having a wrapper for mc_emitN that either actually
+//   Maybe by having a wrapper for e_emitN that either actually
 //   emits code or just returns the size of what would be emitted
 static int command_machine_code_size(CommandType cmd) {
     switch(cmd) {
@@ -47,76 +47,76 @@ static int get_machine_code_offset(int command_index) {
 
 static void compile_inc_dp() {
     // inc r15
-    mc_emit8(0x49);
-    mc_emit8(0xFF);
-    mc_emit8(0xC7);
+    e_emit8(0x49);
+    e_emit8(0xFF);
+    e_emit8(0xC7);
 }
 
 static void compile_dec_dp() {
     // dec r15
-    mc_emit8(0x49);
-    mc_emit8(0xFF);
-    mc_emit8(0xCF);
+    e_emit8(0x49);
+    e_emit8(0xFF);
+    e_emit8(0xCF);
 }
 
 static void compile_inc_at_dp() {
     // inc byte [r15]
-    mc_emit8(0x41);
-    mc_emit8(0xFE);
-    mc_emit8(0x07);
+    e_emit8(0x41);
+    e_emit8(0xFE);
+    e_emit8(0x07);
 }
 
 static void compile_dec_at_dp() {
     // dec byte [r15]
-    mc_emit8(0x41);
-    mc_emit8(0xFE);
-    mc_emit8(0x0F);
+    e_emit8(0x41);
+    e_emit8(0xFE);
+    e_emit8(0x0F);
 }
 
 static void compile_out_at_dp() {
     // mov eax, 1
-    mc_emit8(0xB8);
-    mc_emit32(1);
+    e_emit8(0xB8);
+    e_emit32(1);
 
     // mov edi, 1
-    mc_emit8(0xBF);
-    mc_emit32(1);
+    e_emit8(0xBF);
+    e_emit32(1);
 
     // mov rsi, r15
-    mc_emit8(0x4C);
-    mc_emit8(0x89);
-    mc_emit8(0xFE);
+    e_emit8(0x4C);
+    e_emit8(0x89);
+    e_emit8(0xFE);
 
     // mov edx, 1
-    mc_emit8(0xBA);
-    mc_emit32(1);
+    e_emit8(0xBA);
+    e_emit32(1);
 
     // syscall
-    mc_emit8(0x0F);
-    mc_emit8(0x05);
+    e_emit8(0x0F);
+    e_emit8(0x05);
 }
 
 static void compile_in_at_dp() {
     // mov eax, 0
-    mc_emit8(0xB8);
-    mc_emit32(0);
+    e_emit8(0xB8);
+    e_emit32(0);
 
     // mov edi, 0
-    mc_emit8(0xBF);
-    mc_emit32(0);
+    e_emit8(0xBF);
+    e_emit32(0);
 
     // mov rsi, r15
-    mc_emit8(0x4C);
-    mc_emit8(0x89);
-    mc_emit8(0xFE);
+    e_emit8(0x4C);
+    e_emit8(0x89);
+    e_emit8(0xFE);
 
     // mov edx, 1
-    mc_emit8(0xBA);
-    mc_emit32(1);
+    e_emit8(0xBA);
+    e_emit32(1);
 
     // syscall
-    mc_emit8(0x0F);
-    mc_emit8(0x05);
+    e_emit8(0x0F);
+    e_emit8(0x05);
 }
 
 static void compile_jump_zero() {
@@ -124,15 +124,15 @@ static void compile_jump_zero() {
     int32_t jump_offset = jmp_dst_offset - state.current_offset;
 
     // cmp byte [r15], 0
-    mc_emit8(0x41);
-    mc_emit8(0x80);
-    mc_emit8(0x3F);
-    mc_emit8(0);
+    e_emit8(0x41);
+    e_emit8(0x80);
+    e_emit8(0x3F);
+    e_emit8(0);
 
     // jz near jump_offset
-    mc_emit8(0x0F);
-    mc_emit8(0x84);
-    mc_emit32(jump_offset);
+    e_emit8(0x0F);
+    e_emit8(0x84);
+    e_emit32(jump_offset);
 }
 
 static void compile_jump_not_zero() {
@@ -140,48 +140,48 @@ static void compile_jump_not_zero() {
     int32_t jump_offset = jmp_dst_offset - state.current_offset;
 
     // cmp byte [r15], 0
-    mc_emit8(0x41);
-    mc_emit8(0x80);
-    mc_emit8(0x3F);
-    mc_emit8(0);
+    e_emit8(0x41);
+    e_emit8(0x80);
+    e_emit8(0x3F);
+    e_emit8(0);
 
     // jnz near jump_offset
-    mc_emit8(0x0F);
-    mc_emit8(0x85);
-    mc_emit32(jump_offset);
+    e_emit8(0x0F);
+    e_emit8(0x85);
+    e_emit32(jump_offset);
 }
 
 static void compile_setup() {
     // mov rax, args.cells_buffer
-    mc_emit8(0x48);
-    mc_emit8(0xB8);
-    mc_emit64((uint64_t)state.current->data.cells_buffer);
+    e_emit8(0x48);
+    e_emit8(0xB8);
+    e_emit64((uint64_t)state.current->data.cells_buffer);
 
     // mov r15, rax
-    mc_emit8(0x49);
-    mc_emit8(0x89);
-    mc_emit8(0xC7);
+    e_emit8(0x49);
+    e_emit8(0x89);
+    e_emit8(0xC7);
 }
 
 static void compile_exit() {
     // mov eax, 60
-    mc_emit8(0xB8);
-    mc_emit32(60);
+    e_emit8(0xB8);
+    e_emit32(60);
 
     // mov edi, 0
-    mc_emit8(0xBF);
-    mc_emit32(0);
+    e_emit8(0xBF);
+    e_emit32(0);
 
     // syscall
-    mc_emit8(0x0F);
-    mc_emit8(0x05);
+    e_emit8(0x0F);
+    e_emit8(0x05);
 }
 
-void linux_x86_64_compile(MachineCode* code, Command* commands, int ncommands) {
+void linux_x86_64_compile(Executable* code, Command* commands, int ncommands) {
     ASSERT(code != NULL);
     ASSERT(commands != NULL);
 
-    mc_set_current(code);
+    e_set_current(code);
 
     memset(&state, 0, sizeof(state));
     state.commands = commands;

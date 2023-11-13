@@ -4,19 +4,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include "error.h"
-#include "machine_code.h"
+#include "executable.h"
 
 #define STARTING_CAPACITY 64
 
-MachineCode bf_compile(Arch arch, Command* commands, int ncommands) {
-    MachineCode code = {
+Executable bf_compile(Arch arch, Command* commands, int ncommands) {
+    Executable executable = {
         .code = malloc(STARTING_CAPACITY),
         .length = 0,
         .capacity = STARTING_CAPACITY
     };
 
     ArchCompiler compiler = arch_get_compiler(arch);
-    compiler.compile(&code, commands, ncommands);
+    compiler.compile(&executable, commands, ncommands);
 
-    return code;
+    return executable;
 }

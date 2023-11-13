@@ -1,8 +1,8 @@
-#include "machine_code.h"
+#include "executable.h"
 #include <string.h>
 #include "error.h"
 
-static MachineCode* current;
+static Executable* current;
 
 static void grow_code() {
     ASSERT(current != NULL);
@@ -13,11 +13,11 @@ static void grow_code() {
     ASSERT(current->code != NULL);
 }
 
-void mc_set_current(MachineCode* mc) {
+void e_set_current(Executable* mc) {
     current = mc;
 }
 
-void mc_emit(void* buf, size_t size) {
+void e_emit(void* buf, size_t size) {
     while(current->length + size > current->capacity)
         grow_code();
 
@@ -25,14 +25,14 @@ void mc_emit(void* buf, size_t size) {
     current->length += size;
 }
 
-void mc_emit8(uint8_t a) {
-    mc_emit(&a, sizeof(a));
+void e_emit8(uint8_t a) {
+    e_emit(&a, sizeof(a));
 }
 
-void mc_emit32(uint32_t a) {
-    mc_emit(&a, sizeof(a));
+void e_emit32(uint32_t a) {
+    e_emit(&a, sizeof(a));
 }
 
-void mc_emit64(uint64_t a) {
-    mc_emit(&a, sizeof(a));
+void e_emit64(uint64_t a) {
+    e_emit(&a, sizeof(a));
 }
