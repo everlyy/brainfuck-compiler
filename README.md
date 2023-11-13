@@ -2,10 +2,9 @@
 
 A Brainfuck compiler written in C
 
-# Notes
+# TODO
 
- * Currently only works on x86-64 Linux machines because it outputs x86-64 machine code and relies on Linux syscalls.
- * Currently doesn't generate actual executables, but just generates machine code and runs that.
+ * Support more platforms (Linux ARM 64, Windows)
 
 # How to run
 
