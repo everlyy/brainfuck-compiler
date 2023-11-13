@@ -41,24 +41,12 @@ int main(int argc, char** argv) {
     fread(input, 1, input_size, finput);
     fclose(finput);
 
-    void* buffer = malloc(32768);
-    ASSERT(buffer != NULL);
-    memset(buffer, 0, 32768);
-
     int ncommands = 0;
-    Command* commands = bf_parse(input, input_size, &ncommands, buffer);
+    Command* commands = bf_parse(input, input_size, &ncommands, NULL);
 
     Executable executable = bf_compile(LINUX_ELF_X86_64, commands, ncommands);
     fwrite(executable.code, 1, executable.length, foutput);
+
     fclose(foutput);
-
-    // This will just execute the generated machine code
-    void* program = mmap(NULL, executable.length, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-    memcpy(program, executable.code, executable.length);
-    mprotect(program, executable.length, PROT_READ | PROT_EXEC);
-
-    ((void(*)(void))program)();
-
-    munmap(program, executable.length);
     return 0;
 }
