@@ -7,7 +7,7 @@
 typedef void(*compile_func)(Executable* code, Command* commands, int ncommands);
 
 typedef enum {
-    LINUX_X86_64
+    LINUX_ELF_X86_64
 } Arch;
 
 typedef struct {

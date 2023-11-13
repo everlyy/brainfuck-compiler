@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
     int ncommands = 0;
     Command* commands = bf_parse(input, input_size, &ncommands, buffer);
 
-    Executable executable = bf_compile(LINUX_X86_64, commands, ncommands);
+    Executable executable = bf_compile(LINUX_ELF_X86_64, commands, ncommands);
     fwrite(executable.code, 1, executable.length, foutput);
     fclose(foutput);
 

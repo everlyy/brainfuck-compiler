@@ -177,7 +177,7 @@ static void compile_exit() {
     e_emit8(0x05);
 }
 
-void linux_x86_64_compile(Executable* code, Command* commands, int ncommands) {
+void linux_elf_x86_64_compile(Executable* code, Command* commands, int ncommands) {
     ASSERT(code != NULL);
     ASSERT(commands != NULL);
 
