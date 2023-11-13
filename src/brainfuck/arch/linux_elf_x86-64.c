@@ -177,11 +177,11 @@ static void compile_exit() {
     e_emit8(0x05);
 }
 
-void linux_elf_x86_64_compile(Executable* code, Command* commands, int ncommands) {
-    ASSERT(code != NULL);
+void linux_elf_x86_64_compile(Executable* exec, Command* commands, int ncommands) {
+    ASSERT(exec != NULL);
     ASSERT(commands != NULL);
 
-    e_set_current(code);
+    e_set_current(exec);
 
     memset(&state, 0, sizeof(state));
     state.commands = commands;
