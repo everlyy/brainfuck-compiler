@@ -74,17 +74,14 @@ static int find_matching_bracket(const char* input, int input_size, int pos) {
     return -1;
 }
 
-Command* bf_parse(char* input, int input_size, int* ncommands, void* cells_buffer) {
+Command* bf_parse(char* input, int input_size, int* ncommands) {
     ASSERT(input != NULL);
     ASSERT(ncommands != NULL);
 
     clean_input(input, &input_size);
 
     Command* commands = malloc(sizeof(Command) * (input_size + 2));
-    commands[(*ncommands)++] = (Command) {
-        .type = SETUP,
-        .data.cells_buffer = cells_buffer
-    };
+    commands[(*ncommands)++] = (Command) { .type = SETUP };
 
     for(int i = 0; i < input_size; i++) {
         char c = input[i];
