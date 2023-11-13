@@ -2,6 +2,13 @@
 #include "error.h"
 #include <string.h>
 
+#define ELF_ENTRY         0x400000
+#define ELF_HDR_SIZE      0x40
+#define ELF_PGM_HDR_SIZE  0x38
+#define ELF_PGM_HDR_COUNT 2
+#define CELLS_ADDRESS     0x8000000
+#define CELLS_SIZE        0x1000
+
 static struct {
     Command* current;
     Command* commands;
@@ -186,6 +193,54 @@ void linux_elf_x86_64_compile(Executable* exec, Command* commands, int ncommands
     memset(&state, 0, sizeof(state));
     state.commands = commands;
     state.ncommands = ncommands;
+
+    uint64_t program_offset = ELF_HDR_SIZE + ELF_PGM_HDR_SIZE * ELF_PGM_HDR_COUNT;
+    uint64_t program_size = get_machine_code_offset(ncommands);
+    uint64_t entry = ELF_ENTRY + program_offset;
+
+    // ELF magic
+    e_emit((uint8_t[]) { 0x7F, 'E', 'L', 'F' }, 4);
+
+    e_emit8(2);                  // 64 bits
+    e_emit8(1);                  // LSB
+    e_emit8(1);                  // Version
+    e_emit8(0x03);               // OS ABI -> Linux
+    e_emit64(0);                 // Padding
+    e_emit16(0x02);              // Type -> Executable
+    e_emit16(0x3E);              // AMD x86-64
+    e_emit32(1);                 // Version
+    e_emit64(entry);             // Entry
+    e_emit64(0x40);              // Program header offset
+    e_emit64(0x00);              // Section header offset
+    e_emit32(0);                 // Flags
+    e_emit16(ELF_HDR_SIZE);      // Header size
+    e_emit16(ELF_PGM_HDR_SIZE);  // Program header entry size
+    e_emit16(ELF_PGM_HDR_COUNT); // Program header count
+    e_emit16(0);                 // Section header entry size
+    e_emit16(0);                 // Section header count
+    e_emit16(0);                 // Index of section header table entry that contains section names
+
+    // Program header for the code
+    e_emit32(0x01);           // Loadable
+    e_emit32(0b101);          // Flags -> Read | Exec
+    e_emit64(program_offset); // Offset of segment in file
+    e_emit64(entry);          // Virtual address
+    e_emit64(0);              // Physical address
+    e_emit64(program_size);   // Size in file
+    e_emit64(program_size);   // Size in memory
+    e_emit64(0x1000);         // Alignment
+
+    // Program header for the data
+    e_emit32(0x01);           // Loadable
+    e_emit32(0b110);          // Flags -> Read | Write
+    e_emit64(program_offset); // Offset of segment in file
+    e_emit64(CELLS_ADDRESS);  // Virtual address
+    e_emit64(0);              // Physical address
+    e_emit64(0);              // Size in file
+    e_emit64(CELLS_SIZE);     // Size in memory
+    e_emit64(0x1000);         // Alignment
+
+    commands[0].data.cells_buffer = (void*)CELLS_ADDRESS;
 
     for(int i = 0; i < ncommands; i++) {
         Command* current = &commands[i];
