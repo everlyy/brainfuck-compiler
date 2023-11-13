@@ -36,7 +36,7 @@ static int command_machine_code_size(CommandType cmd) {
 }
 
 static int get_machine_code_offset(int command_index) {
-    ASSERT(command_index < state.ncommands);
+    ASSERT(command_index <= state.ncommands);
 
     int offset = 0;
     for(int i = 0; i < command_index; i++)
