@@ -29,6 +29,10 @@ void e_emit8(uint8_t a) {
     e_emit(&a, sizeof(a));
 }
 
+void e_emit16(uint16_t a) {
+    e_emit(&a, sizeof(a));
+}
+
 void e_emit32(uint32_t a) {
     e_emit(&a, sizeof(a));
 }
