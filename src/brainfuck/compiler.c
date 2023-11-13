@@ -10,7 +10,7 @@
 
 Executable bf_compile(Arch arch, Command* commands, int ncommands) {
     Executable executable = {
-        .code = malloc(STARTING_CAPACITY),
+        .data = malloc(STARTING_CAPACITY),
         .length = 0,
         .capacity = STARTING_CAPACITY
     };

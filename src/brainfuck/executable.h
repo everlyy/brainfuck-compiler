@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 typedef struct {
-    uint8_t* code;
+    uint8_t* data;
     size_t length;
     size_t capacity;
 } Executable;
