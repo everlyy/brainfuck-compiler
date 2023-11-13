@@ -4,7 +4,6 @@
 #include <errno.h>
 #include "brainfuck/brainfuck.h"
 #include "brainfuck/error.h"
-#include <sys/mman.h>
 
 FILE* open_file_or_exit(const char* filename, const char* mode) {
     FILE* file = fopen(filename, mode);
