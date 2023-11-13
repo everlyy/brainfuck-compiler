@@ -4,6 +4,7 @@
 #include <errno.h>
 #include "brainfuck/brainfuck.h"
 #include "brainfuck/error.h"
+#include <sys/stat.h>
 
 FILE* open_file_or_exit(const char* filename, const char* mode) {
     FILE* file = fopen(filename, mode);
@@ -45,7 +46,8 @@ int main(int argc, char** argv) {
 
     Executable executable = bf_compile(LINUX_ELF_X86_64, commands, ncommands);
     fwrite(executable.data, 1, executable.length, foutput);
-
     fclose(foutput);
+
+    chmod(output_filename, 0755);
     return 0;
 }
