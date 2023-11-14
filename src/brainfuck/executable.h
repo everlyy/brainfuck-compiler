@@ -1,5 +1,5 @@
-#ifndef _BRAINFUCK_MACHINE_CODE_H_
-#define _BRAINFUCK_MACHINE_CODE_H_
+#ifndef _BRAINFUCK_EXECUTABLE_H_
+#define _BRAINFUCK_EXECUTABLE_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -17,4 +17,4 @@ void e_emit16(uint16_t);
 void e_emit32(uint32_t);
 void e_emit64(uint64_t);
 
-#endif // _BRAINFUCK_MACHINE_CODE_H_
+#endif // _BRAINFUCK_EXECUTABLE_H_
