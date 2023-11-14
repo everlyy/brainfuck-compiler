@@ -17,6 +17,10 @@ void e_set_current(Executable* mc) {
     current = mc;
 }
 
+size_t e_current_length(void) {
+    return current->length;
+}
+
 void e_emit(const void* buf, size_t size) {
     while(current->length + size > current->capacity)
         grow_code();

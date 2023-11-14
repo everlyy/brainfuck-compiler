@@ -11,6 +11,7 @@ typedef struct {
 } Executable;
 
 void e_set_current(Executable*);
+size_t e_current_length(void);
 void e_emit(const void* buf, size_t size);
 void e_emit8(uint8_t);
 void e_emit16(uint16_t);
