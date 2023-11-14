@@ -1,11 +1,11 @@
-#include "arch.h"
+#include "platform.h"
 
 void linux_elf_x86_64_compile(Executable* code, Command* commands, int ncommands);
 
-static ArchCompiler compilers[] = {
+static PlatformCompiler compilers[] = {
     [LINUX_ELF_X86_64] = { .compile = linux_elf_x86_64_compile },
 };
 
-ArchCompiler arch_get_compiler(Arch arch) {
-    return compilers[arch];
+PlatformCompiler platform_get_compiler(Platform p) {
+    return compilers[p];
 }

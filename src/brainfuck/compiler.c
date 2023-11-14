@@ -8,14 +8,14 @@
 
 #define STARTING_CAPACITY 64
 
-Executable bf_compile(Arch arch, Command* commands, int ncommands) {
+Executable bf_compile(Platform platform, Command* commands, int ncommands) {
     Executable executable = {
         .data = malloc(STARTING_CAPACITY),
         .length = 0,
         .capacity = STARTING_CAPACITY
     };
 
-    ArchCompiler compiler = arch_get_compiler(arch);
+    PlatformCompiler compiler = platform_get_compiler(platform);
     compiler.compile(&executable, commands, ncommands);
 
     return executable;

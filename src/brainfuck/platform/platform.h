@@ -1,5 +1,5 @@
-#ifndef _BRAINFUCK_ARCH_H_
-#define _BRAINFUCK_ARCH_H_
+#ifndef _BRAINFUCK_PLATFORM_H_
+#define _BRAINFUCK_PLATFORM_H_
 
 #include "executable.h"
 #include "command.h"
@@ -8,12 +8,12 @@ typedef void(*compile_func)(Executable* code, Command* commands, int ncommands);
 
 typedef enum {
     LINUX_ELF_X86_64
-} Arch;
+} Platform;
 
 typedef struct {
     compile_func compile;
-} ArchCompiler;
+} PlatformCompiler;
 
-ArchCompiler arch_get_compiler(Arch);
+PlatformCompiler platform_get_compiler(Platform p);
 
-#endif // _BRAINFUCK_ARCH_H_
+#endif // _BRAINFUCK_PLATFORM_H_
