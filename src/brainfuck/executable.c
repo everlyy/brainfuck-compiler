@@ -40,3 +40,7 @@ void e_emit32(uint32_t a) {
 void e_emit64(uint64_t a) {
     e_emit(&a, sizeof(a));
 }
+
+void e_emit_cstr(const char* cstr) {
+    e_emit(cstr, strlen(cstr));
+}
