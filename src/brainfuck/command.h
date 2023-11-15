@@ -1,6 +1,8 @@
 #ifndef _BRAINFUCK_COMMANDS_H_
 #define _BRAINFUCK_COMMANDS_H_
 
+#include <stdint.h>
+
 #define COMMANDS \
     ENUM_COMMANDS(INC_DP,        '>', inc_dp)        \
     ENUM_COMMANDS(DEC_DP,        '<', dec_dp)        \
@@ -25,6 +27,9 @@ typedef struct {
         int rel_jump_dst;
         void* cells_buffer;
     } data;
+    union {
+        uint64_t offset;
+    } compiler_data;
 } Command;
 
 #endif // _BRAINFUCK_COMMANDS_H_
