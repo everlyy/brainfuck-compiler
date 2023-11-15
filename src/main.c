@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
     const char* const* platform_string_identifiers = platform_get_string_identifiers();
 
     char* output_filename = "a.out";
-    const char* platform_str = platform_string_identifiers[0];
+    const char* platform_str = platform_string_identifiers[LINUX_ELF_X86_64_ALT];
 
     if(argc < 2) {
         fprintf(stderr, "ERROR: Wrong arguments\n");

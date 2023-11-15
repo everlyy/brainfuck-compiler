@@ -4,7 +4,7 @@ CC := gcc
 CFLAGS := -Wall -Wextra -Werror -ggdb -std=c2x
 CPPFLAGS := -Isrc/brainfuck
 
-PLATFORMS := linux_elf_x86-64 linux_asm_arm64
+PLATFORMS := linux_elf_x86-64 linux_elf_x86-64_alt linux_asm_arm64
 
 SOURCES := main.c brainfuck/parser.c brainfuck/compiler.c brainfuck/executable.c brainfuck/platform/platform.c
 SOURCES += $(PLATFORMS:%=brainfuck/platform/%.c)
