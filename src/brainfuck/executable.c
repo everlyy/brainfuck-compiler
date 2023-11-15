@@ -22,6 +22,12 @@ static void ensure_fit(size_t size) {
         grow_code();
 }
 
+void e_delete(Executable* exec) {
+    exec->capacity = 0;
+    exec->length = 0;
+    free(exec->data);
+}
+
 void e_set_current(Executable* mc) {
     current = mc;
 }

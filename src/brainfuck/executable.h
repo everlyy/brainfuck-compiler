@@ -10,6 +10,7 @@ typedef struct {
     size_t capacity;
 } Executable;
 
+void e_delete(Executable*);
 void e_set_current(Executable*);
 size_t e_current_length(void);
 void e_emit(const void* buf, size_t size);
