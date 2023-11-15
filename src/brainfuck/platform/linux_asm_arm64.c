@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #define emit(str) e_emit_cstr(str"\n")
+#define emitf(fmt, ...) e_emit_fmt(fmt"\n", ##__VA_ARGS__)
 
 void linux_asm_arm64_compile(Executable* exec, Command* commands, int ncommands) {
     e_set_current(exec);
@@ -56,8 +57,17 @@ void linux_asm_arm64_compile(Executable* exec, Command* commands, int ncommands)
             break;
 
         case JUMP_ZERO:
+            emitf("  label_%d:", i);
+            emit("  ldr x16, [x15]");
+            emit("  cmp x16, 0");
+            emitf("  beq label_%d", i + current.data.rel_jump_dst);
+            break;
+
         case JUMP_NOT_ZERO:
-            ERROR("JUMP_ZERO and JUMP_NOT_ZERO are not implemented for ARM64 yet\n");
+            emitf("  label_%d:", i);
+            emit("  ldr x16, [x15]");
+            emit("  cmp x16, 0");
+            emitf("  bne label_%d", i + current.data.rel_jump_dst);
             break;
 
         case SETUP:
