@@ -18,5 +18,6 @@ void e_emit16(uint16_t);
 void e_emit32(uint32_t);
 void e_emit64(uint64_t);
 void e_emit_cstr(const char*);
+void e_emit_fmt(const char* fmt, ...);
 
 #endif // _BRAINFUCK_EXECUTABLE_H_
