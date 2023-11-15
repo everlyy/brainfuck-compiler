@@ -151,9 +151,45 @@ static void compile_commands(Command* commands, int ncommands, compile_command_c
             compile_command_callback(current);
 
         switch(current->type) {
-            #define ENUM_COMMANDS(a, b, c) case a: compile_##c(commands, i); break;
-                COMMANDS
-            #undef ENUM_COMMANDS
+        case INC_DP:
+            compile_inc_dp(commands, i);
+            break;
+
+        case DEC_DP:
+            compile_dec_dp(commands, i);
+            break;
+
+        case INC_AT_DP:
+            compile_inc_at_dp(commands, i);
+            break;
+
+        case DEC_AT_DP:
+            compile_dec_at_dp(commands, i);
+            break;
+
+        case OUT_AT_DP:
+            compile_out_at_dp(commands, i);
+            break;
+
+        case IN_AT_DP:
+            compile_in_at_dp(commands, i);
+            break;
+
+        case JUMP_ZERO:
+            compile_jump_zero(commands, i);
+            break;
+
+        case JUMP_NOT_ZERO:
+            compile_jump_not_zero(commands, i);
+            break;
+
+        case SETUP:
+            compile_setup(commands, i);
+            break;
+
+        case EXIT:
+            compile_exit(commands, i);
+            break;
 
         default:
             ASSERT(!"Unreachable");
