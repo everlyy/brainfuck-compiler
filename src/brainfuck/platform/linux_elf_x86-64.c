@@ -227,8 +227,9 @@ static uint64_t calculate_program_size(Command* commands, int ncommands) {
 
     compile_commands(commands, ncommands, calculate_program_size_compile_command_callback);
 
-    free(tmp.data);
-    return tmp.length;
+    uint64_t program_size = tmp.length;
+    e_delete(&tmp);
+    return program_size;
 }
 
 void linux_elf_x86_64_compile(Executable* exec, Command* commands, int ncommands) {
