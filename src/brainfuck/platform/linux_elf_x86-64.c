@@ -1,5 +1,7 @@
+#include "executable.h"
 #include "platform.h"
 #include "error.h"
+#include <stdint.h>
 #include <string.h>
 
 #define ELF_ENTRY         0x400000
@@ -9,78 +11,7 @@
 #define CELLS_ADDRESS     0x8000000
 #define CELLS_SIZE        0x1000
 
-static struct {
-    Command* current;
-    Command* commands;
-    int ncommands;
-    int current_offset;
-    int pos;
-} state;
-
-// Get these sizes dynamically, somehow?
-//   Maybe by having a wrapper for e_emitN that either actually
-//   emits code or just returns the size of what would be emitted
-static int command_machine_code_size(CommandType cmd) {
-    switch(cmd) {
-    case INC_DP:
-    case DEC_DP:
-    case INC_AT_DP:
-    case DEC_AT_DP:
-        return 3;
-    case OUT_AT_DP:
-    case IN_AT_DP:
-        return 20;
-    case JUMP_ZERO:
-    case JUMP_NOT_ZERO:
-        return 10;
-    case SETUP:
-        return 13;
-    case EXIT:
-        return 12;
-    default:
-        ASSERT(!"Unreachable");
-    }
-}
-
-static int get_machine_code_offset(int command_index) {
-    ASSERT(command_index <= state.ncommands);
-
-    int offset = 0;
-    for(int i = 0; i < command_index; i++)
-        offset += command_machine_code_size(state.commands[i].type);
-
-    return offset;
-}
-
-static void compile_inc_dp() {
-    // inc r15
-    e_emit8(0x49);
-    e_emit8(0xFF);
-    e_emit8(0xC7);
-}
-
-static void compile_dec_dp() {
-    // dec r15
-    e_emit8(0x49);
-    e_emit8(0xFF);
-    e_emit8(0xCF);
-}
-
-static void compile_inc_at_dp() {
-    // inc byte [r15]
-    e_emit8(0x41);
-    e_emit8(0xFE);
-    e_emit8(0x07);
-}
-
-static void compile_dec_at_dp() {
-    // dec byte [r15]
-    e_emit8(0x41);
-    e_emit8(0xFE);
-    e_emit8(0x0F);
-}
-
-static void compile_out_at_dp() {
+static void compile_out_at_dp(Command*, int) {
     // mov eax, 1
     e_emit8(0xB8);
     e_emit32(1);
@@ -103,7 +34,7 @@ static void compile_out_at_dp() {
     e_emit8(0x05);
 }
 
-static void compile_in_at_dp() {
+static void compile_in_at_dp(Command*, int) {
     // mov eax, 0
     e_emit8(0xB8);
     e_emit32(0);
@@ -126,9 +57,9 @@ static void compile_in_at_dp() {
     e_emit8(0x05);
 }
 
-static void compile_jump_zero() {
-    uint32_t jmp_dst_offset = get_machine_code_offset(state.pos + state.current->data.rel_jump_dst);
-    int32_t jump_offset = jmp_dst_offset - state.current_offset;
+static void compile_jump_zero(Command* commands, int current) {
+    int jmp_dst_index = commands[current].data.rel_jump_dst + current;
+    int32_t jump_offset = commands[jmp_dst_index].compiler_data.offset - commands[current].compiler_data.offset;
 
     // cmp byte [r15], 0
     e_emit8(0x41);
@@ -142,9 +73,9 @@ static void compile_jump_zero() {
     e_emit32(jump_offset);
 }
 
-static void compile_jump_not_zero() {
-    uint32_t jmp_dst_offset = get_machine_code_offset(state.pos + state.current->data.rel_jump_dst);
-    int32_t jump_offset = jmp_dst_offset - state.current_offset;
+static void compile_jump_not_zero(Command* commands, int current) {
+    int jmp_dst_index = commands[current].data.rel_jump_dst + current;
+    int32_t jump_offset = commands[jmp_dst_index].compiler_data.offset - commands[current].compiler_data.offset;
 
     // cmp byte [r15], 0
     e_emit8(0x41);
@@ -158,11 +89,11 @@ static void compile_jump_not_zero() {
     e_emit32(jump_offset);
 }
 
-static void compile_setup() {
+static void compile_setup(Command* commands, int current) {
     // mov rax, args.cells_buffer
     e_emit8(0x48);
     e_emit8(0xB8);
-    e_emit64((uint64_t)state.current->data.cells_buffer);
+    e_emit64((uint64_t)commands[current].data.cells_buffer);
 
     // mov r15, rax
     e_emit8(0x49);
@@ -170,7 +101,7 @@ static void compile_setup() {
     e_emit8(0xC7);
 }
 
-static void compile_exit() {
+static void compile_exit(Command*, int) {
     // mov eax, 60
     e_emit8(0xB8);
     e_emit32(60);
@@ -184,19 +115,135 @@ static void compile_exit() {
     e_emit8(0x05);
 }
 
+typedef void (*compile_command_callback_func)(Command* current);
+static void compile_commands(Command* commands, int ncommands, compile_command_callback_func compile_command_callback) {
+#define INCREMEMENT_REPEATING(cmd_type, counter) \
+    case cmd_type:                               \
+        (counter)++;                             \
+        break;
+
+#define COMPILE_REPEATING(cmd_type, counter, code)     \
+    if(current->type != (cmd_type) && (counter) > 0) { \
+        code                                           \
+        (counter) = 0;                                 \
+    }
+
+    struct {
+        uint32_t inc_dp;
+        uint32_t dec_dp;
+        uint8_t inc_at_dp;
+        uint8_t dec_at_dp;
+    } repeating;
+    memset(&repeating, 0, sizeof(repeating));
+
+    for(int i = 0; i < ncommands; i++) {
+        Command* current = &commands[i];
+
+        COMPILE_REPEATING(INC_DP, repeating.inc_dp, {
+            // add r15, repeating.inc_dp
+            e_emit8(0x49);
+            e_emit8(0x81);
+            e_emit8(0xC7);
+            e_emit32(repeating.inc_dp);
+        });
+
+        COMPILE_REPEATING(DEC_DP, repeating.dec_dp, {
+            // sub r15, repeating.dec_dp
+            e_emit8(0x49);
+            e_emit8(0x81);
+            e_emit8(0xEF);
+            e_emit32(repeating.dec_dp);
+        });
+
+        COMPILE_REPEATING(INC_AT_DP, repeating.inc_at_dp, {
+            // add byte [r15], repeating.inc_at_dp
+            e_emit8(0x41);
+            e_emit8(0x80);
+            e_emit8(0x07);
+            e_emit8(repeating.inc_at_dp);
+        });
+
+        COMPILE_REPEATING(DEC_AT_DP, repeating.dec_at_dp, {
+            // add byte [r15], repeating.dec_at_dp
+            e_emit8(0x41);
+            e_emit8(0x80);
+            e_emit8(0x2F);
+            e_emit8(repeating.dec_at_dp);
+        });
+
+        if(compile_command_callback)
+            compile_command_callback(current);
+
+        switch(current->type) {
+        INCREMEMENT_REPEATING(INC_DP, repeating.inc_dp);
+        INCREMEMENT_REPEATING(DEC_DP, repeating.dec_dp);
+        INCREMEMENT_REPEATING(INC_AT_DP, repeating.inc_at_dp);
+        INCREMEMENT_REPEATING(DEC_AT_DP, repeating.dec_at_dp);
+
+        case OUT_AT_DP:
+            compile_out_at_dp(commands, i);
+            break;
+
+        case IN_AT_DP:
+            compile_in_at_dp(commands, i);
+            break;
+
+        case JUMP_ZERO:
+            compile_jump_zero(commands, i);
+            break;
+
+        case JUMP_NOT_ZERO:
+            compile_jump_not_zero(commands, i);
+            break;
+
+        case SETUP:
+            compile_setup(commands, i);
+            break;
+
+        case EXIT:
+            compile_exit(commands, i);
+            break;
+
+        default:
+            ASSERT(!"Unreachable");
+        }
+    }
+
+#undef INCREMEMENT_REPEATING
+#undef COMPILE_REPEATING
+}
+
+static void calculate_program_size_compile_command_callback(Command* current) {
+    current->compiler_data.offset = e_current_length();
+}
+
+static uint64_t calculate_program_size(Command* commands, int ncommands) {
+    Executable tmp = {
+        .data = malloc(16),
+        .capacity = 16,
+        .length = 0,
+    };
+    e_set_current(&tmp);
+
+    compile_commands(commands, ncommands, calculate_program_size_compile_command_callback);
+
+    free(tmp.data);
+    return tmp.length;
+}
+
 void linux_elf_x86_64_compile(Executable* exec, Command* commands, int ncommands) {
     ASSERT(exec != NULL);
     ASSERT(commands != NULL);
 
-    e_set_current(exec);
-
-    memset(&state, 0, sizeof(state));
-    state.commands = commands;
-    state.ncommands = ncommands;
+    ASSERT(ncommands >= 2);
+    ASSERT(commands[0].type == SETUP);
+    commands[0].data.cells_buffer = (void*)CELLS_ADDRESS;
 
     uint64_t program_offset = ELF_HDR_SIZE + ELF_PGM_HDR_SIZE * ELF_PGM_HDR_COUNT;
-    uint64_t program_size = get_machine_code_offset(ncommands);
+    uint64_t program_size = calculate_program_size(commands, ncommands);
     uint64_t entry = ELF_ENTRY + program_offset;
+
+    e_set_current(exec);
 
     // ELF magic
     e_emit((uint8_t[]) { 0x7F, 'E', 'L', 'F' }, 4);
@@ -240,21 +287,5 @@ void linux_elf_x86_64_compile(Executable* exec, Command* commands, int ncommands
     e_emit64(CELLS_SIZE);     // Size in memory
     e_emit64(0x1000);         // Alignment
 
-    commands[0].data.cells_buffer = (void*)CELLS_ADDRESS;
-
-    for(int i = 0; i < ncommands; i++) {
-        Command* current = &commands[i];
-
-        state.current = current;
-        state.pos = i;
-        state.current_offset += command_machine_code_size(current->type);
-
-        switch(current->type) {
-            #define ENUM_COMMANDS(a, b, c) case a: compile_##c(); break;
-                COMMANDS
-            #undef ENUM_COMMANDS
-        default:
-            ERROR("Command at position %d has unknown type 0x%x\n", i, current->type);
-        }
-    }
+    compile_commands(commands, ncommands, NULL);
 }

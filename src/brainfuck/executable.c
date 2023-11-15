@@ -33,6 +33,7 @@ void e_set_current(Executable* mc) {
 }
 
 size_t e_current_length(void) {
+    ASSERT(current != NULL);
     return current->length;
 }
 
