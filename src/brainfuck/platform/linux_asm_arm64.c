@@ -29,15 +29,15 @@ void linux_asm_arm64_compile(Executable* exec, Command* commands, int ncommands)
             break;
 
         case INC_AT_DP:
-            emit("  ldr x16, [x15]");
-            emit("  add x16, x16, 1");
-            emit("  str x16, [x15]");
+            emit("  ldrb w16, [x15]");
+            emit("  add w16, w16, 1");
+            emit("  strb w16, [x15]");
             break;
 
         case DEC_AT_DP:
-            emit("  ldr x16, [x15]");
-            emit("  sub x16, x16, 1");
-            emit("  str x16, [x15]");
+            emit("  ldrb w16, [x15]");
+            emit("  sub w16, w16, 1");
+            emit("  strb w16, [x15]");
             break;
 
         case OUT_AT_DP:
@@ -58,15 +58,15 @@ void linux_asm_arm64_compile(Executable* exec, Command* commands, int ncommands)
 
         case JUMP_ZERO:
             emitf("  label_%d:", i);
-            emit("  ldr x16, [x15]");
-            emit("  cmp x16, 0");
+            emit("  ldrb w16, [x15]");
+            emit("  cmp w16, 0");
             emitf("  beq label_%d", i + current.data.rel_jump_dst);
             break;
 
         case JUMP_NOT_ZERO:
             emitf("  label_%d:", i);
-            emit("  ldr x16, [x15]");
-            emit("  cmp x16, 0");
+            emit("  ldrb w16, [x15]");
+            emit("  cmp w16, 0");
             emitf("  bne label_%d", i + current.data.rel_jump_dst);
             break;
 
