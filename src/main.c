@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
 
         if(strcmp(flag, "-h") == 0) {
             usage(program);
-            continue;
+            return 0;
         }
 
         ERROR_IF(argc < 1, "Expected argument after flag '%s'\n", arg);
