@@ -58,16 +58,16 @@ void linux_asm_arm64_compile(Executable* exec, Command* commands, int ncommands)
 
         case JUMP_ZERO:
             emitf("  label_%d:", i);
-            emit("  ldrb w16, [x15]");
-            emit("  cmp w16, 0");
-            emitf("  beq label_%d", i + current.data.rel_jump_dst);
+            emit("    ldrb w16, [x15]");
+            emit("    cmp w16, 0");
+            emitf("    beq label_%d", i + current.data.rel_jump_dst);
             break;
 
         case JUMP_NOT_ZERO:
             emitf("  label_%d:", i);
-            emit("  ldrb w16, [x15]");
-            emit("  cmp w16, 0");
-            emitf("  bne label_%d", i + current.data.rel_jump_dst);
+            emit("    ldrb w16, [x15]");
+            emit("    cmp w16, 0");
+            emitf("    bne label_%d", i + current.data.rel_jump_dst);
             break;
 
         case SETUP:
