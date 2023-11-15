@@ -8,7 +8,6 @@ typedef void(*compile_func)(Executable* code, Command* commands, int ncommands);
 
 typedef enum {
     LINUX_ELF_X86_64 = 0,
-    LINUX_ELF_X86_64_ALT,
     LINUX_ASM_ARM64,
     PLATFORMS_COUNT
 } Platform;
