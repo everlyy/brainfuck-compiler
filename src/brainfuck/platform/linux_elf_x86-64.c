@@ -2,6 +2,7 @@
 #include "platform.h"
 #include "error.h"
 #include <stdint.h>
+#include <string.h>
 
 #define ELF_ENTRY         0x400000
 #define ELF_HDR_SIZE      0x40
@@ -9,34 +10,6 @@
 #define ELF_PGM_HDR_COUNT 2
 #define CELLS_ADDRESS     0x8000000
 #define CELLS_SIZE        0x1000
-
-static void compile_inc_dp(Command*, int) {
-    // inc r15
-    e_emit8(0x49);
-    e_emit8(0xFF);
-    e_emit8(0xC7);
-}
-
-static void compile_dec_dp(Command*, int) {
-    // dec r15
-    e_emit8(0x49);
-    e_emit8(0xFF);
-    e_emit8(0xCF);
-}
-
-static void compile_inc_at_dp(Command*, int) {
-    // inc byte [r15]
-    e_emit8(0x41);
-    e_emit8(0xFE);
-    e_emit8(0x07);
-}
-
-static void compile_dec_at_dp(Command*, int) {
-    // dec byte [r15]
-    e_emit8(0x41);
-    e_emit8(0xFE);
-    e_emit8(0x0F);
-}
 
 static void compile_out_at_dp(Command*, int) {
     // mov eax, 1
@@ -144,28 +117,68 @@ static void compile_exit(Command*, int) {
 
 typedef void (*compile_command_callback_func)(Command* current);
 static void compile_commands(Command* commands, int ncommands, compile_command_callback_func compile_command_callback) {
+#define INCREMEMENT_REPEATING(cmd_type, counter) \
+    case cmd_type:                               \
+        (counter)++;                             \
+        break;
+
+#define COMPILE_REPEATING(cmd_type, counter, code)     \
+    if(current->type != (cmd_type) && (counter) > 0) { \
+        code                                           \
+        (counter) = 0;                                 \
+    }
+
+    struct {
+        uint32_t inc_dp;
+        uint32_t dec_dp;
+        uint8_t inc_at_dp;
+        uint8_t dec_at_dp;
+    } repeating;
+    memset(&repeating, 0, sizeof(repeating));
+
     for(int i = 0; i < ncommands; i++) {
         Command* current = &commands[i];
+
+        COMPILE_REPEATING(INC_DP, repeating.inc_dp, {
+            // add r15, repeating.inc_dp
+            e_emit8(0x49);
+            e_emit8(0x81);
+            e_emit8(0xC7);
+            e_emit32(repeating.inc_dp);
+        });
+
+        COMPILE_REPEATING(DEC_DP, repeating.dec_dp, {
+            // sub r15, repeating.dec_dp
+            e_emit8(0x49);
+            e_emit8(0x81);
+            e_emit8(0xEF);
+            e_emit32(repeating.dec_dp);
+        });
+
+        COMPILE_REPEATING(INC_AT_DP, repeating.inc_at_dp, {
+            // add byte [r15], repeating.inc_at_dp
+            e_emit8(0x41);
+            e_emit8(0x80);
+            e_emit8(0x07);
+            e_emit8(repeating.inc_at_dp);
+        });
+
+        COMPILE_REPEATING(DEC_AT_DP, repeating.dec_at_dp, {
+            // add byte [r15], repeating.dec_at_dp
+            e_emit8(0x41);
+            e_emit8(0x80);
+            e_emit8(0x2F);
+            e_emit8(repeating.dec_at_dp);
+        });
 
         if(compile_command_callback)
             compile_command_callback(current);
 
         switch(current->type) {
-        case INC_DP:
-            compile_inc_dp(commands, i);
-            break;
-
-        case DEC_DP:
-            compile_dec_dp(commands, i);
-            break;
-
-        case INC_AT_DP:
-            compile_inc_at_dp(commands, i);
-            break;
-
-        case DEC_AT_DP:
-            compile_dec_at_dp(commands, i);
-            break;
+        INCREMEMENT_REPEATING(INC_DP, repeating.inc_dp);
+        INCREMEMENT_REPEATING(DEC_DP, repeating.dec_dp);
+        INCREMEMENT_REPEATING(INC_AT_DP, repeating.inc_at_dp);
+        INCREMEMENT_REPEATING(DEC_AT_DP, repeating.dec_at_dp);
 
         case OUT_AT_DP:
             compile_out_at_dp(commands, i);
@@ -195,6 +208,9 @@ static void compile_commands(Command* commands, int ncommands, compile_command_c
             ASSERT(!"Unreachable");
         }
     }
+
+#undef INCREMEMENT_REPEATING
+#undef COMPILE_REPEATING
 }
 
 static void calculate_program_size_compile_command_callback(Command* current) {
