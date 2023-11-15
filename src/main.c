@@ -59,10 +59,14 @@ int main(int argc, char** argv) {
 
     int ncommands = 0;
     Command* commands = bf_parse(input, input_size, &ncommands);
+    free(input);
 
     Executable executable = bf_compile(platform, commands, ncommands);
+    free(commands);
+
     fwrite(executable.data, 1, executable.length, foutput);
     fclose(foutput);
+    e_delete(&executable);
 
     chmod(output_filename, 0755);
     return 0;
