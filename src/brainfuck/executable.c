@@ -60,7 +60,7 @@ void e_emit_fmt(const char* fmt, ...) {
     va_list args;
 
     va_start(args, fmt);
-    int length = vsnprintf(NULL, 0, fmt, args);
+    int length = vsnprintf(NULL, 0, fmt, args) + 1;
     va_end(args);
 
     ensure_fit(length);
@@ -69,5 +69,5 @@ void e_emit_fmt(const char* fmt, ...) {
     vsnprintf((char*)&current->data[current->length], length, fmt, args);
     va_end(args);
 
-    current->length += length;
+    current->length += length - 1;
 }
