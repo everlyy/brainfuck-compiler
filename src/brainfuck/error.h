@@ -15,10 +15,10 @@
         exit(1);                        \
     } while(0)
 
-#define ERROR_IF(condition, fmt, ...) \
-    do {                              \
-        if(condition)                 \
-            ERROR(fmt, __VA_ARGS__);  \
+#define ERROR_IF(condition, fmt, ...)   \
+    do {                                \
+        if(condition)                   \
+            ERROR(fmt, ##__VA_ARGS__);  \
     } while(0)
 
 #define ASSERT(assertion)                                                              \
