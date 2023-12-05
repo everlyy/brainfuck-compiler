@@ -6,6 +6,7 @@
 #include "error.h"
 #include "executable.h"
 #include "platform/platform.h"
+#include "control_flow_graph.h"
 
 static int* _argc;
 static char** _argv;
@@ -18,7 +19,7 @@ static const char* getarg(void) {
 }
 
 static void usage(const char* program) {
-    printf("Usage: %s <input> [-o <output>] [-p <platform>]\n", program);
+    printf("Usage: %s <input> [-g <graph-file.dot>] [-o <output>] [-p <platform>]\n", program);
 
     const char* const* platform_string_identifiers = platform_get_string_identifiers();
     printf("Available platforms:\n");
@@ -62,13 +63,16 @@ static void write_whole_file(const char* filename, void* buffer, int size) {
     fclose(file);
 }
 
-static int start_compilation(const char* input_filename, const char* output_filename, Platform platform) {
+static int start_compilation(const char* input_filename, const char* output_filename, Platform platform, const char* graph_filename) {
     int input_size = 0;
     char* input = read_whole_file(input_filename, &input_size);
 
     int ncommands = 0;
     Command* commands = bf_parse(input, input_size, &ncommands);
     free(input);
+
+    if(graph_filename)
+        control_flow_graph_dump(commands, ncommands, graph_filename);
 
     Executable executable = bf_compile(platform, commands, ncommands);
     free(commands);
@@ -87,6 +91,7 @@ int main(int argc, char** argv) {
     const char* input_filename = NULL;
     const char* output_filename = "a.out";
     const char* platform_string_id = platform_get_string_identifiers()[LINUX_ELF_X86_64];
+    const char* graph_filename = NULL;
 
     const char* program = getarg();
     while(argc > 0) {
@@ -119,6 +124,11 @@ int main(int argc, char** argv) {
             platform_string_id = arg;
             continue;
         }
+
+        if(strcmp(flag, "-g") == 0) {
+            graph_filename = arg;
+            continue;
+        }
     }
 
     ERROR_IF(input_filename == NULL, "No input file\n");
@@ -129,5 +139,5 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    return start_compilation(input_filename, output_filename, (Platform)platform);
+    return start_compilation(input_filename, output_filename, (Platform)platform, graph_filename);
 }

@@ -8,7 +8,7 @@ SOURCE_DIR := src
 BUILD_DIR := .build
 
 PLATFORMS := linux_elf_x86-64 linux_asm_arm64
-OBJECTS := main.o brainfuck/parser.o brainfuck/compiler.o brainfuck/executable.o brainfuck/platform/platform.o
+OBJECTS := main.o brainfuck/parser.o brainfuck/compiler.o brainfuck/executable.o brainfuck/platform/platform.o brainfuck/control_flow_graph.o
 
 OBJECTS := $(OBJECTS:%=$(BUILD_DIR)/%)
 OBJECTS += $(PLATFORMS:%=$(BUILD_DIR)/brainfuck/platform/%.o)
